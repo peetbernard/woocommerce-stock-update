@@ -18,7 +18,7 @@ async function getLaurel() {
           }))
   return lauObj
 }
-getLaurel().then(i => console.log(i))
+
 async function getWebshopSingleAndVari() {
   today = new Date(Date.now())
   console.log("getting simples and variables from webshop started at " + today.toLocaleString())
@@ -142,4 +142,4 @@ today = new Date(Date.now())
 console.log("stock posting ok at " + today.toLocaleString())
 }
 
-// stockPosting()
+stockPosting()
