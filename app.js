@@ -2,6 +2,8 @@ const fetch = require("node-fetch")
 let today = new Date(Date.now())
 require('dotenv').config()
 
+const dataTable = []
+
 async function getLaurel() {
   today = new Date(Date.now())
   console.log("getting data from laurel started at " + today.toLocaleString())
@@ -49,9 +51,9 @@ async function getWebshopSingleAndVari() {
 
   today = new Date(Date.now())
   console.log("END getting simples and variables from webshop at " + today.toLocaleString())
-
+    console.log (adatWoo)
     return {variArr, singleArr}
-}
+}getWebshopSingleAndVari()
 
 async function getWebshopVars() {
   today = new Date(Date.now())
@@ -165,4 +167,4 @@ async function stockPosting() {
 
 }
 
-stockPosting()
+// stockPosting()
