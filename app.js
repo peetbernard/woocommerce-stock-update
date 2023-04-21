@@ -2,8 +2,6 @@ const fetch = require("node-fetch")
 let today = new Date(Date.now())
 require('dotenv').config()
 
-const dataTable = []
-
 async function getLaurel() {
   today = new Date(Date.now())
   console.log("getting data from laurel started at " + today.toLocaleString())
@@ -30,7 +28,7 @@ async function getWebshopSingleAndVari() {
 
     const myHeaders = new fetch.Headers();
       myHeaders.append("Authorization", `Basic ${process.env.WC_AUTH}`)
-    const response = await fetch(`${process.env.WOO_URL}products?per_page=10000`, {method: 'GET', headers: myHeaders, redirect: 'follow'})
+    const response = await fetch(`${process.env.WOO_URL}?per_page=10000`, {method: 'GET', headers: myHeaders, redirect: 'follow'})
     const nyersWoo = await response.text()
     const adatWoo = JSON.parse(nyersWoo)
       const singleArr = []
@@ -40,7 +38,8 @@ async function getWebshopSingleAndVari() {
                 singleArr.push({
                   wooId: i.id,
                   cikkSz: i.sku,
-                  keszlet: i.stock_quantity
+                  keszlet: i.stock_quantity,
+                  type: 'simple'
                 })
                 } 
               else {
@@ -51,9 +50,9 @@ async function getWebshopSingleAndVari() {
 
   today = new Date(Date.now())
   console.log("END getting simples and variables from webshop at " + today.toLocaleString())
-    console.log (adatWoo)
+    
     return {variArr, singleArr}
-}getWebshopSingleAndVari()
+}
 
 async function getWebshopVars() {
   today = new Date(Date.now())
@@ -62,7 +61,7 @@ async function getWebshopVars() {
     const kezdet = await getWebshopSingleAndVari()
     const variables = kezdet.variArr
     const all = kezdet.singleArr
-  
+    
     const myHeaders = new fetch.Headers();
       myHeaders.append("Authorization", `Basic ${process.env.WC_AUTH}`)
     const requestOptions = {
@@ -72,20 +71,21 @@ async function getWebshopVars() {
 
         for (let i in variables) {
           const response = await fetch(`${process.env.WOO_URL}${variables[i]}/variations?per_page=100`, requestOptions)
-          
             const stringWoo = await response.text()
             const adatWoo = JSON.parse(stringWoo)
             for (let j in adatWoo){
-            all.push({
+              all.push({
+              parentWooId: variables[i],
               wooId: adatWoo[j].id,
               cikkSz: adatWoo[j].sku,
-              keszlet: adatWoo[j].stock_quantity
+              keszlet: adatWoo[j].stock_quantity,
+              type: 'variation'
             })}
         }
 
   today = new Date(Date.now())
   console.log("END getting variations from webshop at " + today.toLocaleString())
-
+ 
     return all
 }
 
@@ -97,9 +97,12 @@ async function stockPosting() {
     const woo = await getWebshopVars()
     const laurel = await getLaurel()
     const sumLaurel = []
-      const check = []
+    const check = []
 
       for (let i in laurel) {
+
+        if (laurel[i].keszlet < 0) {laurel[i].keszlet = 0}
+
         if(!check.includes(laurel[i].cikksz)) {
           const ossz = laurel
             .filter(termek => termek.cikksz === laurel[i].cikksz)
@@ -113,14 +116,16 @@ async function stockPosting() {
       const final = []
       const cikkSzamok = []
       for (let i in woo) {
+        
         for (let j in sumLaurel) {
         if(woo[i].cikkSz === sumLaurel[j].cikksz && sumLaurel[j].sum !== woo[i].keszlet) {
-          cikkSzamok.push({bauerCikk: woo[i].cikkSz, wooCikk: woo[i].wooId,})
+          cikkSzamok.push({bauerCikk: woo[i].cikkSz, wooCikk: woo[i].wooId, type: woo[i].type, parent: woo[i].parentWooId, sum: sumLaurel[j].sum})
             }
           }
         }
 
       for(let j in laurel) {
+
         for (let i in cikkSzamok) {
 
           if (cikkSzamok[i].bauerCikk === laurel[j].cikksz && laurel[j].raktar === 'A001') {
@@ -128,7 +133,10 @@ async function stockPosting() {
               laurelCikk: cikkSzamok[i].bauerCikk,
               wooCikk: cikkSzamok[i].wooCikk,
               keszlet: laurel[j].keszlet,
-              raktar: '1047'
+              raktar: '1047',
+              type: cikkSzamok[i].type,
+              parent: cikkSzamok[i].parent,
+              sum: cikkSzamok[i].sum
           })
           }
 
@@ -137,7 +145,10 @@ async function stockPosting() {
               laurelCikk: cikkSzamok[i].bauerCikk,
               wooCikk: cikkSzamok[i].wooCikk,
               keszlet: laurel[j].keszlet,
-              raktar: '1049'
+              raktar: '1049',
+              type: cikkSzamok[i].type,
+              parent: cikkSzamok[i].parent,
+              sum: cikkSzamok[i].sum
             })
           }
 
@@ -146,25 +157,36 @@ async function stockPosting() {
               laurelCikk: cikkSzamok[i].bauerCikk,
               wooCikk: cikkSzamok[i].wooCikk,
               keszlet: laurel[j].keszlet,
-              raktar: '1048'
+              raktar: '1048',
+              type: cikkSzamok[i].type,
+              parent: cikkSzamok[i].parent,
+              sum: cikkSzamok[i].sum
             })
           }
 
         }
       }
 
-    for(let i in final) {
-      
-      await fetch(`${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&stock_value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`,
-        {method: 'POST', redirect: 'follow'})
+      for(let i in final) {
 
-      console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar)
+        await fetch(`${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&stock_value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`,
+          {method: 'POST', redirect: 'follow'})
 
-    }
+        console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar)
+        
+      }
+
+      for(let i in final) { 
+        if (final[i].type === 'simple') {
+          await fetch(`${process.env.WOO_URL}${final[i].wooCikk}?stock_quantity=${final[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+        }
+        else {
+          await fetch(`${process.env.WOO_URL}${final[i].parent}/variations/${final[i].wooCikk}?stock_quantity=${final[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+        }
+      }
 
   today = new Date(Date.now())
   console.log("FINISHED stock posting at " + today.toLocaleString())
-
 }
 
-// stockPosting()
+stockPosting()
