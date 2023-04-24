@@ -1,10 +1,8 @@
 const fetch = require("node-fetch")
-let today = new Date(Date.now())
 require('dotenv').config()
 
 async function getLaurel() {
-  today = new Date(Date.now())
-  console.log("getting data from laurel started at " + today.toLocaleString())
+  console.log("getting data from laurel started at " + new Date())
 
     const myHeaders = new fetch.Headers()
       myHeaders.append("Authorization", `Basic ${process.env.LAUREL_AUTH}`)
@@ -19,12 +17,17 @@ async function getLaurel() {
             raktar: i.RAKTAR
           }))
 
+    for (let i in lauObj) {
+      if (lauObj[i].keszlet < 0) {
+        lauObj[i].keszlet = 0
+      }
+    }
+
   return lauObj
 }
 
 async function getWebshopSingleAndVari() {
-  today = new Date(Date.now())
-  console.log("START getting simples and variables from webshop at " + today.toLocaleString())
+  console.log("START getting simples and variables from webshop at " + new Date())
 
     const myHeaders = new fetch.Headers();
       myHeaders.append("Authorization", `Basic ${process.env.WC_AUTH}`)
@@ -48,15 +51,13 @@ async function getWebshopSingleAndVari() {
               }
             )
 
-  today = new Date(Date.now())
-  console.log("END getting simples and variables from webshop at " + today.toLocaleString())
+  console.log("END getting simples and variables from webshop at " + new Date())
     
     return {variArr, singleArr}
 }
 
 async function getWebshopVars() {
-  today = new Date(Date.now())
-  console.log("START getting variations from webshop at " + today.toLocaleString())
+  console.log("START getting variations from webshop at " + new Date())
 
     const kezdet = await getWebshopSingleAndVari()
     const variables = kezdet.variArr
@@ -83,16 +84,14 @@ async function getWebshopVars() {
             })}
         }
 
-  today = new Date(Date.now())
-  console.log("END getting variations from webshop at " + today.toLocaleString())
+  console.log("END getting variations from webshop at " + new Date())
  
     return all
 }
 
 async function stockPosting() {
 
-  today = new Date(Date.now())
-  console.log("INITIALIZING stock posting at " + today.toLocaleString())
+  console.log("INITIALIZING stock posting at " + new Date())
 
     const woo = await getWebshopVars()
     const laurel = await getLaurel()
@@ -176,17 +175,24 @@ async function stockPosting() {
         
       }
 
+
+
       for(let i in final) { 
+
+        const myHeaders = new fetch.Headers();
+        myHeaders.append("Authorization", `Basic ${process.env.WC_AUTH}`)
+
         if (final[i].type === 'simple') {
           await fetch(`${process.env.WOO_URL}${final[i].wooCikk}?stock_quantity=${final[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+          console.log("simple" + final[i].wooCikk + "total" + final[i].sum + "updated")
         }
         else {
           await fetch(`${process.env.WOO_URL}${final[i].parent}/variations/${final[i].wooCikk}?stock_quantity=${final[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+          console.log("variation" + final[i].wooCikk + "total" + final[i].sum + "updated")
         }
       }
 
-  today = new Date(Date.now())
-  console.log("FINISHED stock posting at " + today.toLocaleString())
+  console.log("FINISHED stock posting at " + new Date())
 }
 
 stockPosting()
