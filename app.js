@@ -1,5 +1,6 @@
 const fetch = require("node-fetch")
 require('dotenv').config()
+var cron = require('node-cron')
 
 async function getLaurel() {
   console.log("getting data from laurel started at " + new Date())
@@ -172,27 +173,28 @@ async function stockPosting() {
           {method: 'POST', redirect: 'follow'})
 
         console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar)
-        
       }
 
+      let uniqueFinal = final
+      .filter((obj, index) => final.findIndex((item) => item.laurelCikk === obj.laurelCikk) === index)
 
-
-      for(let i in final) { 
+      for(let i in uniqueFinal) { 
 
         const myHeaders = new fetch.Headers();
         myHeaders.append("Authorization", `Basic ${process.env.WC_AUTH}`)
 
-        if (final[i].type === 'simple') {
-          await fetch(`${process.env.WOO_URL}${final[i].wooCikk}?stock_quantity=${final[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
-          console.log("simple" + final[i].wooCikk + "total" + final[i].sum + "updated")
+        if (uniqueFinal[i].type === 'simple') {
+          await fetch(`${process.env.WOO_URL}${uniqueFinal[i].wooCikk}?stock_quantity=${uniqueFinal[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+          console.log("simple " + uniqueFinal[i].laurelCikk + " total " + uniqueFinal[i].sum + " updated")
         }
         else {
-          await fetch(`${process.env.WOO_URL}${final[i].parent}/variations/${final[i].wooCikk}?stock_quantity=${final[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
-          console.log("variation" + final[i].wooCikk + "total" + final[i].sum + "updated")
+          await fetch(`${process.env.WOO_URL}${uniqueFinal[i].parent}/variations/${uniqueFinal[i].wooCikk}?stock_quantity=${uniqueFinal[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+          console.log("variation " + uniqueFinal[i].laurelCikk + " total " + uniqueFinal[i].sum + " updated")
         }
+        
       }
 
   console.log("FINISHED stock posting at " + new Date())
 }
 
-stockPosting()
+cron.schedule('10,30,50 10-19 * * 1,2,3,4,5,6', () => stockPosting())
