@@ -100,9 +100,6 @@ async function stockPosting() {
     const check = []
 
       for (let i in laurel) {
-
-        if (laurel[i].keszlet < 0) {laurel[i].keszlet = 0}
-
         if(!check.includes(laurel[i].cikksz)) {
           const ossz = laurel
             .filter(termek => termek.cikksz === laurel[i].cikksz)
@@ -116,7 +113,6 @@ async function stockPosting() {
       const final = []
       const cikkSzamok = []
       for (let i in woo) {
-        
         for (let j in sumLaurel) {
         if(woo[i].cikkSz === sumLaurel[j].cikksz && sumLaurel[j].sum !== woo[i].keszlet) {
           cikkSzamok.push({bauerCikk: woo[i].cikkSz, wooCikk: woo[i].wooId, type: woo[i].type, parent: woo[i].parentWooId, sum: sumLaurel[j].sum})
@@ -175,8 +171,7 @@ async function stockPosting() {
         console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar)
       }
 
-      let uniqueFinal = final
-      .filter((obj, index) => final.findIndex((item) => item.laurelCikk === obj.laurelCikk) === index)
+      let uniqueFinal = final.filter((obj, index) => final.findIndex((item) => item.laurelCikk === obj.laurelCikk) === index)
 
       for(let i in uniqueFinal) { 
 
