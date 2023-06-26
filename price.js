@@ -66,7 +66,7 @@ async function getWebshopVars() {
 
 async function pricePosting() {
 
-  console.log("INITIALIZING stock posting at " + new Date())
+  console.log("INITIALIZING price posting at " + new Date())
 
     const woo = await getWebshopVars()
     const laurel = await functions.getLaurel(`${process.env.PRICE_API_URL}`)
@@ -90,5 +90,7 @@ async function pricePosting() {
 
   console.log("FINISHED price posting at " + new Date())
 }
+
+pricePosting()
 
 module.exports = { pricePosting }

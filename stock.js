@@ -170,4 +170,6 @@ async function stockPosting() {
   console.log("FINISHED stock posting at " + new Date())
 }
 
+stockPosting()
+
 module.exports = { stockPosting }
