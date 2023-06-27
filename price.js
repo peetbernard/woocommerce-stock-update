@@ -1,5 +1,6 @@
 const fetch = require("node-fetch")
 require('dotenv').config()
+const functions = require('./functions')
 
 async function getWebshopSingleAndVari() {
   console.log("START getting simples and variables from webshop at " + new Date())
