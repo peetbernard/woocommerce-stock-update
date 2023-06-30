@@ -48,9 +48,9 @@ async function getWebshopVars() {
       redirect: 'follow'}
 
         for (let i in variables) {
-          const response = await fetch(`${process.env.WOO_URL}${variables[i]}/variations?per_page=100`, requestOptions)
+          try {const response = await fetch(`${process.env.WOO_URL}${variables[i]}/variations?per_page=100`, requestOptions)
             const stringWoo = await response.text()
-            const adatWoo = JSON.parse(stringWoo)
+            const adatWoo = JSON.parse(stringWoo)         
             for (let j in adatWoo){
               all.push({
               parentWooId: variables[i],
@@ -58,7 +58,8 @@ async function getWebshopVars() {
               cikkSz: adatWoo[j].sku,
               keszlet: adatWoo[j].stock_quantity,
               type: 'variation'
-            })}
+            })}}
+            catch(error) {console.log(error)}
         }
 
   console.log("END getting variations from webshop at " + new Date())
@@ -141,9 +142,9 @@ async function stockPosting() {
 
       for(let i in final) {
 
-        await fetch(`${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&stock_value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`,
-          {method: 'POST', redirect: 'follow'})
-
+        try {await fetch(`${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&stock_value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`,
+          {method: 'POST', redirect: 'follow'})}
+          catch(error) {console.log(error)}
         console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar)
       }
 
@@ -155,12 +156,14 @@ async function stockPosting() {
         myHeaders.append("Authorization", `Basic ${process.env.WC_AUTH}`)
 
         if (uniqueFinal[i].type === 'simple') {
-          await fetch(`${process.env.WOO_URL}${uniqueFinal[i].wooCikk}?stock_quantity=${uniqueFinal[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+          try {await fetch(`${process.env.WOO_URL}${uniqueFinal[i].wooCikk}?stock_quantity=${uniqueFinal[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})}
+          catch(error) {console.log(error)}
           console.log("simple " + uniqueFinal[i].laurelCikk + " total " + uniqueFinal[i].sum + " updated")
           if (uniqueFinal[i].sum === 0) {functions.email(uniqueFinal[i].laurelCikk)}
         }
         else {
-          await fetch(`${process.env.WOO_URL}${uniqueFinal[i].parent}/variations/${uniqueFinal[i].wooCikk}?stock_quantity=${uniqueFinal[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+          try {await fetch(`${process.env.WOO_URL}${uniqueFinal[i].parent}/variations/${uniqueFinal[i].wooCikk}?stock_quantity=${uniqueFinal[i].sum}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})}
+          catch(error) {console.log(error)}          
           console.log("variation " + uniqueFinal[i].laurelCikk + " total " + uniqueFinal[i].sum + " updated")
           if (uniqueFinal[i].sum === 0) {functions.email(uniqueFinal[i].laurelCikk)}
         }
