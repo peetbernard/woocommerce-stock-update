@@ -47,7 +47,7 @@ async function getWebshopVars() {
       redirect: 'follow'}
 
         for (let i in variables) {
-          const response = await fetch(`${process.env.WOO_URL}${variables[i]}/variations?per_page=100`, requestOptions)
+          try {const response = await fetch(`${process.env.WOO_URL}${variables[i]}/variations?per_page=100`, requestOptions)
             const stringWoo = await response.text()
             const adatWoo = JSON.parse(stringWoo)
             for (let j in adatWoo){
@@ -57,7 +57,8 @@ async function getWebshopVars() {
               cikkSz: adatWoo[j].sku,
               brutto: Number(adatWoo[j].regular_price),
               type: 'variation'
-            })}
+            })}}
+            catch(error) {console.log(error)}
         }
 
   console.log("END getting variations from webshop at " + new Date())
@@ -78,11 +79,13 @@ async function pricePosting() {
       for (let j in laurel) {
         if(woo[i].cikkSz === laurel[j].cikkSz && woo[i].brutto !== laurel[j].brutto) {
           if(woo[i].type === "simple") {
-            await fetch(`${process.env.WOO_URL}${woo[i].wooId}?regular_price=${laurel[j].brutto}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+            try {await fetch(`${process.env.WOO_URL}${woo[i].wooId}?regular_price=${laurel[j].brutto}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})}
+            catch(error) {console.log(error)}
             console.log("simple " + woo[i].cikkSz + " price " + laurel[j].brutto + " updated")
           }
           else {
-            await fetch(`${process.env.WOO_URL}${woo[i].parentWooId}/variations/${woo[i].wooId}?regular_price=${laurel[j].brutto}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})
+            try {await fetch(`${process.env.WOO_URL}${woo[i].parentWooId}/variations/${woo[i].wooId}?regular_price=${laurel[j].brutto}`, {method: 'PUT', headers: myHeaders, redirect: 'follow'})}
+            catch(error) {console.log(error)}
             console.log("variation " + woo[i].cikkSz + " price " + laurel[j].brutto + " updated")
           }
         }
