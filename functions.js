@@ -26,42 +26,34 @@ async function email(tartalom) {
 }
 
 async function getLaurel(url) {
-    console.log("getting data from laurel started at " + new Date())
+  console.log("getting data from laurel started at " + new Date())
   
-      const myHeaders = new fetch.Headers()
-        myHeaders.append("Authorization", `Basic ${process.env.LAUREL_AUTH}`)
-      const response = await fetch(url, {method: 'GET', headers: myHeaders, redirect: 'follow'})
-      const nyersLaurel = await response.json()
-      const adatLaurel = JSON.parse(nyersLaurel)
+  const myHeaders = new fetch.Headers()
+  myHeaders.append("Authorization", `Basic ${process.env.LAUREL_AUTH}`)
+  const response = await fetch(url, {method: 'GET', headers: myHeaders, redirect: 'follow'})
+  const nyersLaurel = await response.json()
+  const adatLaurel = JSON.parse(nyersLaurel)
   
-      const price = () => {
-        const lauPrice = 
-            adatLaurel.prices.map(i => ({
-                cikkSz: i.C_KOD,
-                brutto: i.BRUTTO,
-            }))
-        return lauPrice}
-
-        const stock = () => {
-        const lauStock = 
-        adatLaurel.inventory
-        // ez a filter átmeneti, amíg a többi üzlet nem nyílik ki
-        .filter(i => i.RAKTAR === 'A001')
-        //VÉGE
-        .map(i => ({
-            cikksz: i.C_KOD,
-            keszlet: i.MENNYISEG,
-            raktar: i.RAKTAR
-        }))
-  
-        for (let i in lauStock) {
-            if (lauStock[i].keszlet < 0) {
-            lauStock[i].keszlet = 0
-            }
-        }
-    return lauStock}
-  
-  return adatLaurel.prices ? price() : stock()
+  const price = () => {
+    return adatLaurel.prices.map(i => ({
+      cikkSz: i.C_KOD,
+      brutto: i.BRUTTO,
+    }))
   }
+
+  const stock = () => {
+    return adatLaurel.inventory
+      // ez a filter átmeneti, amíg a többi üzlet nem nyílik ki
+      .filter(i => i.RAKTAR === 'A001')
+      //VÉGE
+      .map(i => ({
+        cikksz: i.C_KOD,
+        keszlet: Math.max(0, i.MENNYISEG),
+        raktar: i.RAKTAR
+      }))
+  }
+
+  return adatLaurel.prices ? price() : stock()
+}
 
 module.exports = { email, getLaurel }
