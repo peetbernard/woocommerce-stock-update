@@ -1,5 +1,5 @@
 # woocommerce-stock-update
-Automatic stock update between stock management program LKR and Woocomemrce webshop.
+Automatic stock and price update between stock management program LKR and Woocomemrce webshop.
 
 The async function stockPosting() is responsible for comparing and synchronizing inventory between the WooCommerce webshop and the Laurel inventory management.
 The function performs the following steps:
