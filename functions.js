@@ -43,8 +43,8 @@ async function getLaurel(url) {
 
   const stock = () => {
     return adatLaurel.inventory
-      // ez a filter átmeneti, amíg a többi üzlet nem nyílik ki
-      .filter(i => i.RAKTAR === 'A001')
+      // a raktárakat állítja be
+      .filter(i => i.RAKTAR === 'A001' || i.RAKTAR === 'A003')
       //VÉGE
       .map(i => ({
         cikksz: i.C_KOD,
