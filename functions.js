@@ -22,7 +22,7 @@ async function email(tartalom) {
     html: `<b>${tartalom} elfogyott a webshopról</b>`, // html body
   });
 
-  console.log("Üzenet elküldve: %s", info.messageId);
+  console.log("Üzenet elküldve: %s", info.subject);
 }
 
 async function getLaurel(url) {
@@ -44,7 +44,7 @@ async function getLaurel(url) {
   const stock = () => {
     return adatLaurel.inventory
       // a raktárakat állítja be
-      .filter(i => i.RAKTAR === 'A001' || i.RAKTAR === 'A003')
+      // .filter(i => i.RAKTAR === 'A001' || i.RAKTAR === 'A003')
       //VÉGE
       .map(i => ({
         cikksz: i.C_KOD,

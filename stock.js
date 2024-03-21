@@ -142,10 +142,10 @@ async function stockPosting() {
 
       for(let i in final) {
 
-        try {await fetch(`${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&stock_value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`,
+        try {await fetch(`${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`,
           {method: 'POST', redirect: 'follow'})}
           catch(error) {console.log(error)}
-        console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar)
+        console.log(final[i].laurelCikk + " updated to " + final[i].keszlet + " in " + final[i].raktar + `\n` + ` URL ` + `${process.env.WOO_PLUGIN_URL}&id=${final[i].wooCikk}&value=${final[i].keszlet}&action=set&item=stock&format=default&product_id=${final[i].wooCikk}&location_id=${final[i].raktar}`)
       }
 
       let uniqueFinal = final.filter((obj, index) => final.findIndex((item) => item.laurelCikk === obj.laurelCikk) === index)
